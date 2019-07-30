@@ -53,8 +53,14 @@ impl Drawable {
             drawing: None,
             shapes: Vec::new(),
             enabled: true,
-            erase_on_click: true,
+            erase_on_click: false,
         }
+    }
+
+    pub(crate) fn clear(&mut self, ctx: &EventContext) {
+        self.shapes.clear();
+        ctx.stream().emit(GroundMsg::ShapesChanged(self.shapes.clone()));
+        ctx.widget().queue_draw();
     }
 
     pub(crate) fn mouse_down(&mut self, ctx: &EventContext, e: &EventButton) {

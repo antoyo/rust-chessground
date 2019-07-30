@@ -24,7 +24,6 @@ use gtk;
 use gtk::prelude::*;
 use gtk::DrawingArea;
 use gdk::{EventButton, EventMotion, EventMask};
-use cairo::prelude::*;
 use cairo::{Context, Matrix};
 
 use relm::{Relm, Widget, Update, EventStream};
@@ -40,6 +39,7 @@ use boardstate::BoardState;
 type Stream = EventStream<GroundMsg>;
 
 pub struct Model {
+    relm: Relm<Ground>,
     state: Rc<RefCell<State>>,
 }
 
@@ -52,6 +52,7 @@ impl fmt::Debug for Model {
 /// Chessground events and messages.
 #[derive(Debug, Msg)]
 pub enum GroundMsg {
+    ClearShapes,
     /// Flip the board.
     Flip,
     /// Set the board orientation.
@@ -166,8 +167,9 @@ impl Update for Ground {
     type ModelParam = ();
     type Msg = GroundMsg;
 
-    fn model(_: &Relm<Self>, _: ()) -> Model {
+    fn model(relm: &Relm<Self>, _: ()) -> Model {
         Model {
+            relm: relm.clone(),
             state: Rc::new(RefCell::new(State::new())),
         }
     }
@@ -176,6 +178,10 @@ impl Update for Ground {
         let mut state = self.model.state.borrow_mut();
 
         match event {
+            GroundMsg::ClearShapes => {
+                let stream = self.model.relm.stream().clone();
+                state.clear_shapes(&stream, &self.drawing_area);
+            },
             GroundMsg::Flip => {
                 let orientation = state.board_state.orientation();
                 state.board_state.set_orientation(!orientation);
@@ -319,6 +325,11 @@ impl State {
             promotable: Promotable::new(),
             pieces: Pieces::new(),
         }
+    }
+
+    fn clear_shapes(&mut self, stream: &Stream, drawing_area: &DrawingArea) {
+        let ctx = EventContext::new(&self.board_state, stream, drawing_area, (0.0, 0.0));
+        self.drawable.clear(&ctx);
     }
 
     fn queue_animation(&mut self, drawing_area: &DrawingArea) {
