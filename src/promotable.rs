@@ -217,7 +217,7 @@ impl Promoting {
             cr.translate(-0.5, -0.5);
             cr.scale(state.piece_set().scale(), state.piece_set().scale());
             let renderer = librsvg::CairoRenderer::new(state.piece_set().by_piece(&role.of(self.color)));
-            renderer.render_element_to_viewport(cr, None, &Rectangle {
+            renderer.render_document(cr, &Rectangle {
                 x: 0.0,
                 y: 0.0,
                 width: 177.0,
