@@ -30,7 +30,7 @@ pub fn ease(start: f64, end: f64, t: f64) -> f64 {
 pub fn pos_to_square((x, y): (f64, f64)) -> Option<Square> {
     let (x, y) = (x.floor(), y.floor());
     if 0f64 <= x && x <= 7f64 && 0f64 <= y && y <= 7f64 {
-        Some(Square::from_coords(File::new(x as i8), Rank::new(7 - y as i8)))
+        Some(Square::from_coords(File::new(x as u32), Rank::new(7 - y as u32)))
     } else {
         None
     }

@@ -17,7 +17,7 @@ librsvg = { git = "https://gitlab.gnome.org/GNOME/librsvg", rev = "b980c2c5" }
 time = "0.1"
 relm = "0.19"
 relm-derive = "0.19"
-shakmaty = "0.14"
+shakmaty = "0.16.3"
 
 [dev-dependencies]
 rand = "0.6"
