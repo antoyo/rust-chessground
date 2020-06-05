@@ -35,24 +35,24 @@ pub struct Pieces {
     past: SteadyTime,
 }
 
-struct Drag {
-    square: Square,
-    piece: Piece,
-    start: (f64, f64),
-    pos: (f64, f64),
-    threshold: bool,
+pub struct Drag {
+    pub square: Square,
+    pub piece: Piece,
+    pub start: (f64, f64),
+    pub pos: (f64, f64),
+    pub threshold: bool,
 }
 
 pub struct Figurine {
-    square: Square,
-    piece: Piece,
-    start: (f64, f64),
-    elapsed: f64,
-    time: SteadyTime,
-    last_drag: SteadyTime,
-    fading: bool,
-    replaced: bool,
-    dragging: bool,
+    pub square: Square,
+    pub piece: Piece,
+    pub start: (f64, f64),
+    pub elapsed: f64,
+    pub time: SteadyTime,
+    pub last_drag: SteadyTime,
+    pub fading: bool,
+    pub replaced: bool,
+    pub dragging: bool,
 }
 
 impl Pieces {
@@ -411,7 +411,7 @@ impl Figurine {
         self.elapsed = 0.0;
     }
 
-    fn pos(&self) -> (f64, f64) {
+    pub fn pos(&self) -> (f64, f64) {
         if self.fading {
             self.start
         } else {
@@ -420,7 +420,7 @@ impl Figurine {
         }
     }
 
-    fn alpha(&self) -> f64 {
+    pub fn alpha(&self) -> f64 {
         if self.replaced {
             ease(0.5, 0.0, self.elapsed)
         } else if self.fading {

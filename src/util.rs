@@ -27,6 +27,15 @@ pub fn ease(start: f64, end: f64, t: f64) -> f64 {
     start + (end - start) * ease
 }
 
+pub fn pos_to_pocket((x, y): (f64, f64)) -> Option<usize> {
+    let (x, y) = (x.floor(), y.floor());
+    if x >= 8.0 && x <= 9.0 && y >= 2.5 && y <= 7.0 {
+        Some((7.0 - y) as usize)
+    } else {
+        None
+    }
+}
+
 pub fn pos_to_square((x, y): (f64, f64)) -> Option<Square> {
     let (x, y) = (x.floor(), y.floor());
     if 0f64 <= x && x <= 7f64 && 0f64 <= y && y <= 7f64 {

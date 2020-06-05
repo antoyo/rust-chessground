@@ -34,6 +34,7 @@ mod ground;
 mod boardstate;
 mod pieceset;
 mod pieces;
+mod pockets;
 mod promotable;
 mod drawable;
 mod util;

@@ -26,7 +26,7 @@ pub struct BoardState {
     orientation: Color,
     check: Option<Square>,
     last_move: Option<(Square, Square)>,
-    turn: Option<Color>,
+    pub turn: Option<Color>,
     piece_set: PieceSet,
     legals: MoveList,
 }

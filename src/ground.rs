@@ -28,11 +28,12 @@ use cairo::{Context, Matrix};
 
 use relm::{Relm, Widget, Update, EventStream};
 
-use shakmaty::{Square, Rank, Color, Role, Board, Move, MoveList, Chess, Position};
+use shakmaty::{Material, Piece, Square, Rank, Color, Role, Board, Move, MoveList, Chess, Position};
 
-use util::pos_to_square;
+use util::{pos_to_pocket, pos_to_square};
 use pieces::Pieces;
 use drawable::{Drawable, DrawShape};
+use pockets::Pockets;
 use promotable::Promotable;
 use boardstate::BoardState;
 
@@ -61,9 +62,11 @@ pub enum GroundMsg {
     SetPos(Pos),
     /// Set up a board.
     SetBoard(Board),
+    SetPockets(Material, Color),
 
     /// Sent when the completed a piece drag or move.
     UserMove(Square, Square, Option<Role>),
+    UserDrop(Piece, Square),
     /// Sent when shapes are added, removed or cleared.
     ShapesChanged(Vec<DrawShape>),
 }
@@ -209,6 +212,9 @@ impl Update for Ground {
                 state.promotable.cancel();
                 self.drawing_area.queue_draw();
             },
+            GroundMsg::SetPockets(pockets, turn) => {
+                state.pockets.set_pockets(pockets, turn);
+            },
             GroundMsg::UserMove(orig, dest, None) if state.board_state.valid_move(orig, dest) => {
                 if state.board_state.legals().iter().any(|m| m.from() == Some(orig) && m.to() == dest && m.promotion().is_some()) {
                     let color = state.pieces.figurine_at(orig).map_or_else(|| {
@@ -216,6 +222,10 @@ impl Update for Ground {
                     }, |figurine| figurine.piece().color);
                     state.promotable.start(color, orig, dest);
                     self.drawing_area.queue_draw();
+                }
+            },
+            GroundMsg::UserDrop(piece, to) => {
+                if state.board_state.legals().contains(&Move::Put { role: piece.role, to }) {
                 }
             },
             _ => {}
@@ -315,6 +325,7 @@ struct State {
     drawable: Drawable,
     promotable: Promotable,
     pieces: Pieces,
+    pockets: Pockets,
 }
 
 impl State {
@@ -324,6 +335,7 @@ impl State {
             drawable: Drawable::new(),
             promotable: Promotable::new(),
             pieces: Pieces::new(),
+            pockets: Pockets::new(),
         }
     }
 
@@ -347,12 +359,15 @@ impl State {
         self.pieces.draw(cr, &self.board_state, &self.promotable);
         self.drawable.draw(cr);
         self.pieces.draw_drag(cr, &self.board_state);
+        self.pockets.draw(cr, &self.board_state);
+        self.pockets.draw_drag(cr, &self.board_state);
         self.promotable.draw(cr, &self.board_state);
     }
 
     fn button_release_event(&mut self, stream: &Stream, drawing_area: &DrawingArea, e: &EventButton) {
         let ctx = EventContext::new(&self.board_state, stream, drawing_area, e.get_position());
         self.pieces.drag_mouse_up(&ctx);
+        self.pockets.drag_mouse_up(&ctx);
         self.drawable.mouse_up(&ctx);
     }
 
@@ -360,6 +375,7 @@ impl State {
         let ctx = EventContext::new(&self.board_state, stream, drawing_area, e.get_position());
         self.promotable.mouse_move(&ctx);
         self.pieces.drag_mouse_move(&ctx);
+        self.pockets.drag_mouse_move(&ctx);
         self.drawable.mouse_move(&ctx);
     }
 
@@ -371,6 +387,7 @@ impl State {
         if let Inhibit(false) = promotable.mouse_down(pieces, &ctx) {
             pieces.selection_mouse_down(&ctx, e);
             pieces.drag_mouse_down(&ctx, e);
+            self.pockets.drag_mouse_down(&ctx, e);
             self.drawable.mouse_down(&ctx, e);
         }
     }
@@ -438,6 +455,7 @@ impl<'a> WidgetContext<'a> {
 pub(crate) struct EventContext<'a> {
     widget: WidgetContext<'a>,
     stream: &'a Stream,
+    pocket: Option<usize>,
     pos: (f64, f64),
     square: Option<Square>,
 }
@@ -452,11 +470,13 @@ impl<'a> EventContext<'a> {
         let alloc = drawing_area.get_allocation();
         let pos = (pos.0 + f64::from(alloc.x), pos.1 + f64::from(alloc.y));
         let pos = widget.invert_pos(pos);
+        let pocket = pos_to_pocket(pos);
         let square = pos_to_square(pos);
 
         EventContext {
             widget,
             stream,
+            pocket,
             pos,
             square,
         }
@@ -476,5 +496,9 @@ impl<'a> EventContext<'a> {
 
     pub fn square(&self) -> Option<Square> {
         self.square
+    }
+
+    pub fn pocket(&self) -> Option<usize> {
+        self.pocket
     }
 }
