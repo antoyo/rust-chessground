@@ -78,49 +78,58 @@ impl Pockets {
         }
     }
 
-    pub fn set_pockets(&mut self, material: Material, turn: Color) {
+    pub fn set_pockets(&mut self, material: Material, color: Color) {
         self.figurines.clear();
 
         let now = SteadyTime::now();
-        let (color, material) =
-            match turn {
-                Color::White => (Color::White, &material.white),
-                Color::Black => (Color::Black, &material.black),
+        let material =
+            match color {
+                Color::White => &material.white,
+                Color::Black => &material.black,
             };
-        let mut y = 7.5;
+        let x =
+            match color {
+                Color::White => 9.0,
+                Color::Black => -1.0,
+            };
+        let mut y =
+            match color {
+                Color::White => 7.5,
+                Color::Black => 0.5,
+            };
         if material.pawns > 0 {
             self.figurines.push(new_figurine(Piece {
                 color,
                 role: Role::Pawn,
-            }, y, now));
+            }, x, y, now));
             y -= 1.0;
         }
         if material.knights > 0 {
             self.figurines.push(new_figurine(Piece {
                 color,
                 role: Role::Knight,
-            }, y, now));
+            }, x, y, now));
             y -= 1.0;
         }
         if material.bishops > 0 {
             self.figurines.push(new_figurine(Piece {
                 color,
                 role: Role::Bishop,
-            }, y, now));
+            }, x, y, now));
             y -= 1.0;
         }
         if material.rooks > 0 {
             self.figurines.push(new_figurine(Piece {
                 color,
                 role: Role::Rook,
-            }, y, now));
+            }, x, y, now));
             y -= 1.0;
         }
         if material.queens > 0 {
             self.figurines.push(new_figurine(Piece {
                 color,
                 role: Role::Queen,
-            }, y, now));
+            }, x, y, now));
         }
     }
 
@@ -194,11 +203,11 @@ impl Pockets {
     }
 }
 
-fn new_figurine(piece: Piece, y: f64, now: SteadyTime) -> Figurine {
+fn new_figurine(piece: Piece, x: f64, y: f64, now: SteadyTime) -> Figurine {
     Figurine {
         square: Square::A1, // Dummy square.
         piece,
-        start: (9.0, y),
+        start: (x, y),
         elapsed: 0.0,
         time: now,
         last_drag: now,

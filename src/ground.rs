@@ -415,6 +415,17 @@ impl<'a> WidgetContext<'a> {
         WidgetContext { matrix, drawing_area }
     }
 
+    fn adjust_pos(&self, (x, y): (f64, f64)) -> (f64, f64) {
+        let alloc = self.drawing_area.get_allocation();
+        let size = max(min(alloc.width, alloc.height), 9);
+        let size = f64::from(size);
+        let x = x - f64::from(alloc.x) - f64::from(alloc.width) / 2.0;
+        let y = y - f64::from(alloc.y) - f64::from(alloc.height) / 2.0;
+        let x = x / (size / 9.0);
+        let y = y / (size / 9.0);
+        (8.0 - (4.0 - x), 8.0 - (4.0 - y))
+    }
+
     fn invert_pos(&self, (x, y): (f64, f64)) -> (f64, f64) {
         self.matrix()
             .try_invert().expect("transform invertible")
@@ -469,8 +480,8 @@ impl<'a> EventContext<'a> {
         let widget = WidgetContext::new(board_state, drawing_area);
         let alloc = drawing_area.get_allocation();
         let pos = (pos.0 + f64::from(alloc.x), pos.1 + f64::from(alloc.y));
+        let pocket = pos_to_pocket(widget.adjust_pos(pos));
         let pos = widget.invert_pos(pos);
-        let pocket = pos_to_pocket(pos);
         let square = pos_to_square(pos);
 
         EventContext {
